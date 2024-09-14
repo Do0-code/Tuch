@@ -15,6 +15,9 @@ using System.Windows.Navigation;
 using System.IO;
 using Microsoft.Win32;
 using System.Diagnostics;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
+using System.Xml;
 
 namespace Tuch
 {
@@ -27,6 +30,16 @@ namespace Tuch
         {
             InitializeComponent();
             PopulateFileViewer();
+            LoadCustomHighlighting();
+
+            //// Apply custom colors
+            //var highlighting = CodeEditor.SyntaxHighlighting as IHighlightingDefinition;
+            //if (highlighting != null)
+            //{
+            //    highlighting.GetNamedColor("Keyword").Foreground = new SimpleHighlightingBrush(Colors.Blue);
+            //    highlighting.GetNamedColor("Comment").Foreground = new SimpleHighlightingBrush(Colors.Green);
+            //    // Set more colors as needed
+            //}
 
             // Command binding for F5 key
             CommandBinding runBinding = new CommandBinding(ApplicationCommands.New);
@@ -79,6 +92,20 @@ namespace Tuch
                 };
                 fileItem.Selected += FileItem_Selected;
                 parentItem.Items.Add(fileItem);
+            }
+        }
+
+        private void LoadCustomHighlighting()
+        {
+            using (Stream s = typeof(MainWindow).Assembly.GetManifestResourceStream("Tuch.CustomCHighlighting.xshd"))
+            {
+                if (s != null)
+                {
+                    using (XmlReader reader = new XmlTextReader(s))
+                    {
+                        CodeEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                    }
+                }
             }
         }
 

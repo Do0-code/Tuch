@@ -1,0 +1,45 @@
+﻿<SyntaxDefinition name="C" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment" foreground="#57A64A" />
+  <Color name="String" foreground="#D69D85" />
+  <Color name="Preprocessor" foreground="#9B9B9B" />
+  <Color name="Keyword" foreground="#569CD6" />
+  <Color name="DataType" foreground="#4EC9B0" />
+  <Color name="Number" foreground="#B5CEA8" />
+
+  <RuleSet>
+    <Span color="Comment" begin="//" />
+    <Span color="Comment" multiline="true" begin="/\*" end="\*/" />
+    
+    <Span color="String">
+      <Begin>"</Begin>
+      <End>"</End>
+      <RuleSet>
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+    
+    <Span color="Preprocessor" begin="\#" end="$" />
+    
+    <Keywords color="Keyword">
+      <Word>if</Word>
+      <Word>else</Word>
+      <Word>for</Word>
+      <Word>while</Word>
+      <Word>return</Word>
+      <!-- Add more keywords as needed -->
+    </Keywords>
+    
+    <Keywords color="DataType">
+      <Word>int</Word>
+      <Word>float</Word>
+      <Word>double</Word>
+      <Word>char</Word>
+      <Word>void</Word>
+      <!-- Add more data types as needed -->
+    </Keywords>
+    
+    <Rule color="Number">
+      \b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?
+    </Rule>
+  </RuleSet>
+</SyntaxDefinition>
