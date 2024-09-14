@@ -1,0 +1,83 @@
+﻿<Window x:Class="Tuch.MainWindow"
+        xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Game Engine" Height="600" Width="800"
+        Background="#1E1E1E">
+    
+    <Window.Resources>
+        <Style TargetType="TreeView">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Resources>
+    
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RunCodeCommand}"/>
+    </Window.InputBindings>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0" Background="#21252B" Foreground="#ABB2BF">
+            <MenuItem Header="File" Foreground="#ABB2BF">
+                <MenuItem Header="New" Click="NewFile_Click" Foreground="#282C34"/>
+                <MenuItem Header="Open" Click="OpenFile_Click" Foreground="#282C34"/>
+                <MenuItem Header="Save" Click="SaveFile_Click" Foreground="#282C34"/>
+                <Separator/>
+                <MenuItem Header="Exit" Click="Exit_Click" Foreground="#282C34"/>
+            </MenuItem>
+            <MenuItem Header="View" Foreground="#ABB2BF">
+                <MenuItem Header="New" Click="NewFile_Click" Foreground="#282C34"/>
+                <MenuItem Header="Open" Click="OpenFile_Click" Foreground="#282C34"/>
+                <MenuItem Header="Save" Click="SaveFile_Click" Foreground="#282C34"/>
+                <Separator/>
+                <MenuItem Header="Exit" Click="Exit_Click" Foreground="#282C34"/>
+            </MenuItem>
+            <MenuItem Header="Run" Foreground="#ABB2BF">
+                <MenuItem Header="Run Code" Click="RunCode_Click" InputGestureText="F5" Foreground="#282C34"/>
+            </MenuItem>
+        </Menu>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- File Viewer -->
+            <TreeView x:Name="FileViewer" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"/>
+
+            <!-- AvalonEdit Code Editor -->
+            <avalonEdit:TextEditor
+                x:Name="CodeEditor"
+                Grid.Column="1"
+                Grid.Row="0"
+                FontFamily="Consolas"
+                FontSize="14"
+                SyntaxHighlighting="C#"
+                ShowLineNumbers="True"
+                WordWrap="False"/>
+
+            <!-- Console Output -->
+            <TextBox x:Name="ConsoleOutput" Grid.Column="1" Grid.Row="1" 
+             IsReadOnly="True" VerticalScrollBarVisibility="Auto"
+             FontFamily="Consolas" FontSize="14"/>
+        </Grid>
+    </Grid>
+</Window>
