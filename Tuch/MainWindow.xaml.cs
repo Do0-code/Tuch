@@ -19,11 +19,12 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using System.Xml;
 
+
 namespace Tuch
 {
     public partial class MainWindow : Window
     {
-        private string projectPath = @"D:\workspace"; // change with your folder
+        private string projectPath;
         private string currentFilePath;
 
         public MainWindow()
@@ -31,15 +32,6 @@ namespace Tuch
             InitializeComponent();
             PopulateFileViewer();
             LoadCustomHighlighting();
-
-            //// Apply custom colors
-            //var highlighting = CodeEditor.SyntaxHighlighting as IHighlightingDefinition;
-            //if (highlighting != null)
-            //{
-            //    highlighting.GetNamedColor("Keyword").Foreground = new SimpleHighlightingBrush(Colors.Blue);
-            //    highlighting.GetNamedColor("Comment").Foreground = new SimpleHighlightingBrush(Colors.Green);
-            //    // Set more colors as needed
-            //}
 
             // Command binding for F5 key
             CommandBinding runBinding = new CommandBinding(ApplicationCommands.New);
@@ -49,6 +41,12 @@ namespace Tuch
 
         private void PopulateFileViewer()
         {
+            FileViewer.Items.Clear();
+            if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
+            {
+                MessageBox.Show("유효한 프로젝트가 로드되지 않았습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
             var rootItem = new TreeViewItem { Header = "Project", Tag = "Root" };
             PopulateTreeView(rootItem, projectPath);
             FileViewer.Items.Add(rootItem);
@@ -56,6 +54,11 @@ namespace Tuch
 
         private void PopulateTreeView(TreeViewItem parentItem, string path)
         {
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+            {
+                MessageBox.Show("유효하지 않은 프로젝트 경로입니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             foreach (string directory in Directory.GetDirectories(path))
             {
                 var directoryItem = new TreeViewItem
@@ -106,6 +109,51 @@ namespace Tuch
                         CodeEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
                     }
                 }
+            }
+        }
+
+        private void HomeScreen_CreateNewProjectRequested(object sender, EventArgs e)
+        {
+            CreateNewProject();
+        }
+
+        private void NewProject_Click(object sender, RoutedEventArgs e)
+        {
+            CreateNewProject();
+        }
+
+        private void CreateNewProject()
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+
+            if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
+            {
+                projectPath = dialog.SelectedPath;
+                string mainFilePath = Path.Combine(projectPath, "main.c");
+
+                // 디렉토리가 존재하지 않으면 생성
+                if (!Directory.Exists(projectPath))
+                {
+                    Directory.CreateDirectory(projectPath);
+                }
+
+                // main.c 파일 생성
+                File.WriteAllText(mainFilePath, "// Your C code here\n");
+
+                // 파일 뷰어 갱신
+                PopulateFileViewer();
+
+                // 에디터 뷰로 전환
+                HomeScreenView.Visibility = Visibility.Collapsed;
+                EditorView.Visibility = Visibility.Visible;
+
+                // main.c를 에디터에 로드
+                LoadFileContent(mainFilePath);
+            }
+            else
+            {
+                MessageBox.Show("프로젝트 생성이 취소되었거나 유효하지 않은 경로가 선택되었습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -218,7 +266,7 @@ namespace Tuch
                 string output = runProcess.StandardOutput.ReadToEnd();
                 string errors = runProcess.StandardError.ReadToEnd();
 
-                ConsoleOutput.Text = "Output:\n" + output;
+                ConsoleOutput.Text =output;
                 if (!string.IsNullOrEmpty(errors))
                 {
                     ConsoleOutput.Text += "\nErrors:\n" + errors;
@@ -278,8 +326,7 @@ namespace Tuch
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"파일 로딩 오류: {ex.Message}");
-                Console.WriteLine($"파일 로딩 중 오류 발생: {ex}");
+                MessageBox.Show($"File loading error: {ex.Message}");
             }
         }
 
