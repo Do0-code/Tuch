@@ -3,7 +3,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Tuch"
-        Title="" Height="600" Width="800"
+        Title="Tuch" Height="600" Width="800"
         Background="#1E1E1E">
 
     <Window.Resources>
@@ -37,11 +37,9 @@
 
         <Menu Grid.Row="0" Background="#21252B" Foreground="#ABB2BF">
             <MenuItem Header="File" Foreground="#ABB2BF">
-                <MenuItem Header="New" Click="NewFile_Click" Foreground="#282C34"/>
-                <MenuItem Header="Open" Click="OpenFile_Click" Foreground="#282C34"/>
-                <MenuItem Header="Save" Click="SaveFile_Click" Foreground="#282C34"/>
-                <Separator/>
                 <MenuItem Header="New Project" Click="NewProject_Click" Foreground="#282C34"/>
+                <MenuItem Header="Open Project" Click="OpenProject_Click" Foreground="#282C34"/>
+                <MenuItem Header="Save" Click="SaveFile_Click" Foreground="#282C34"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="Exit_Click" Foreground="#282C34"/>
             </MenuItem>

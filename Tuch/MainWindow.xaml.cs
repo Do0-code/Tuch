@@ -32,6 +32,7 @@ namespace Tuch
             InitializeComponent();
             PopulateFileViewer();
             LoadCustomHighlighting();
+            ShowHomeScreen();
 
             // Command binding for F5 key
             CommandBinding runBinding = new CommandBinding(ApplicationCommands.New);
@@ -39,39 +40,41 @@ namespace Tuch
             this.CommandBindings.Add(runBinding);
         }
 
+        private void ShowHomeScreen()
+        {
+            HomeScreenView.Visibility = Visibility.Visible;
+            EditorView.Visibility = Visibility.Collapsed;
+        }
+
+        private void ShowEditorView()
+        {
+            HomeScreenView.Visibility = Visibility.Collapsed;
+            EditorView.Visibility = Visibility.Visible;
+        }
+
         private void PopulateFileViewer()
         {
             FileViewer.Items.Clear();
-            if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
+            if (!string.IsNullOrEmpty(projectPath) && Directory.Exists(projectPath))
             {
-                MessageBox.Show("유효한 프로젝트가 로드되지 않았습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
+                var rootItem = new TreeViewItem { Header = "Project", Tag = "Root" };
+                PopulateTreeView(rootItem, projectPath);
+                FileViewer.Items.Add(rootItem);
             }
-            var rootItem = new TreeViewItem { Header = "Project", Tag = "Root" };
-            PopulateTreeView(rootItem, projectPath);
-            FileViewer.Items.Add(rootItem);
         }
 
         private void PopulateTreeView(TreeViewItem parentItem, string path)
         {
             if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
             {
-                MessageBox.Show("유효하지 않은 프로젝트 경로입니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
+
             foreach (string directory in Directory.GetDirectories(path))
             {
                 var directoryItem = new TreeViewItem
                 {
-                    Header = new StackPanel
-                    {
-                        Orientation = Orientation.Horizontal,
-                        Children =
-                {
-                    //new Image { Source = (BitmapImage)FindResource("FolderIcon"), Width = 16, Height = 16 },
-                    new TextBlock { Text = new DirectoryInfo(directory).Name, Margin = new Thickness(5,0,0,0) }
-                }
-                    },
+                    Header = new DirectoryInfo(directory).Name,
                     Tag = "Directory"
                 };
                 parentItem.Items.Add(directoryItem);
@@ -82,15 +85,7 @@ namespace Tuch
             {
                 var fileItem = new TreeViewItem
                 {
-                    Header = new StackPanel
-                    {
-                        Orientation = Orientation.Horizontal,
-                        Children =
-                {
-                    //new Image { Source = (BitmapImage)FindResource("FileIcon"), Width = 16, Height = 16 },
-                    new TextBlock { Text = Path.GetFileName(file), Margin = new Thickness(5,0,0,0) }
-                }
-                    },
+                    Header = Path.GetFileName(file),
                     Tag = "File"
                 };
                 fileItem.Selected += FileItem_Selected;
@@ -131,48 +126,50 @@ namespace Tuch
             {
                 projectPath = dialog.SelectedPath;
                 string mainFilePath = Path.Combine(projectPath, "main.c");
-
-                // 디렉토리가 존재하지 않으면 생성
+                //디렉토리가 존재하지 않으면 생성
                 if (!Directory.Exists(projectPath))
                 {
                     Directory.CreateDirectory(projectPath);
                 }
-
-                // main.c 파일 생성
-                File.WriteAllText(mainFilePath, "// Your C code here\n");
-
+                //main.c 내용
+                if (!File.Exists(mainFilePath))
+                {
+                    File.WriteAllText(mainFilePath, "// Your C code here\n");
+                }
                 // 파일 뷰어 갱신
                 PopulateFileViewer();
-
-                // 에디터 뷰로 전환
-                HomeScreenView.Visibility = Visibility.Collapsed;
-                EditorView.Visibility = Visibility.Visible;
-
                 // main.c를 에디터에 로드
+                ShowEditorView();
                 LoadFileContent(mainFilePath);
-            }
-            else
-            {
-                MessageBox.Show("프로젝트 생성이 취소되었거나 유효하지 않은 경로가 선택되었습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
         private void FileItem_Selected(object sender, RoutedEventArgs e)
         {
             var fileItem = sender as TreeViewItem;
-            if (fileItem != null && fileItem.Tag as string != "Root")
+            if (fileItem != null && fileItem.Tag as string == "File")
             {
                 string filePath = GetFilePath(fileItem);
                 if (File.Exists(filePath))
                 {
                     LoadFileContent(filePath);
                 }
-                else
-                {
-                    MessageBox.Show($"File not found: {filePath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
             }
         }
+
+        private void OpenProject_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+
+            if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
+            {
+                projectPath = dialog.SelectedPath;
+                PopulateFileViewer();
+                ShowEditorView();
+            }
+        }
+
 
         private string GetFilePath(TreeViewItem item)
         {
@@ -326,7 +323,7 @@ namespace Tuch
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"File loading error: {ex.Message}");
+                MessageBox.Show($"파일 로딩 오류: {ex.Message}");
             }
         }
 
