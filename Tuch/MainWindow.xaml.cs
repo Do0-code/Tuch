@@ -52,6 +52,13 @@ namespace Tuch
             EditorView.Visibility = Visibility.Visible;
         }
 
+        private void OpenAnimationEditor_Click(object sender, RoutedEventArgs e)
+        {
+            var animationEditor = new AnimationEditorWindow();
+            animationEditor.Show();
+        }
+
+
         private void PopulateFileViewer()
         {
             FileViewer.Items.Clear();
@@ -220,7 +227,7 @@ namespace Tuch
         {
             if (string.IsNullOrEmpty(currentFilePath))
             {
-                MessageBox.Show("Please save the file before running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Please save/create the file before running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 

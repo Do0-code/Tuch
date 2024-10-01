@@ -43,19 +43,23 @@
                 <Separator/>
                 <MenuItem Header="Exit" Click="Exit_Click" Foreground="#282C34"/>
             </MenuItem>
-            <MenuItem Header="View" Foreground="#ABB2BF">
+            <MenuItem Header="Tools">
+                <MenuItem Header="Animation Editor" Click="OpenAnimationEditor_Click"/>
+            </MenuItem>
+            <!-- MenuItem Header="View" Foreground="#ABB2BF">
                 <MenuItem Header="New" Click="NewFile_Click" Foreground="#282C34"/>
                 <MenuItem Header="Open" Click="OpenFile_Click" Foreground="#282C34"/>
                 <MenuItem Header="Save" Click="SaveFile_Click" Foreground="#282C34"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="Exit_Click" Foreground="#282C34"/>
-            </MenuItem>
+            </MenuItem -->
             <MenuItem Header="Run" Foreground="#ABB2BF">
                 <MenuItem Header="Run Code" Click="RunCode_Click" InputGestureText="F5" Foreground="#282C34"/>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1" x:Name="MainContent">
-            <local:HomeScreen x:Name="HomeScreenView" CreateNewProjectRequested="HomeScreen_CreateNewProjectRequested"/>
+            <!--local:HomeScreen x:Name="HomeScreenView" CreateNewProjectRequested="HomeScreen_CreateNewProjectRequested"/-->
+            <local:HomeScreen x:Name="HomeScreenView" Visibility="Visible"/>
             <Grid x:Name="EditorView" Visibility="Collapsed">
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
