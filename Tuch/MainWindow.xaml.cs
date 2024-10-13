@@ -38,6 +38,10 @@ namespace Tuch
             CommandBinding runBinding = new CommandBinding(ApplicationCommands.New);
             runBinding.Executed += RunCode_Click;
             this.CommandBindings.Add(runBinding);
+
+            // Subscribe to HomeScreen events
+            HomeScreenView.CreateNewProjectRequested += HomeScreen_CreateNewProjectRequested;
+            HomeScreenView.OpenRecentProjectRequested += HomeScreen_OpenRecentProjectRequested;
         }
 
         private void ShowHomeScreen()
@@ -119,6 +123,11 @@ namespace Tuch
             CreateNewProject();
         }
 
+        private void HomeScreen_OpenRecentProjectRequested(object sender, string projectPath)
+        {
+            OpenProject(projectPath);
+        }
+        
         private void NewProject_Click(object sender, RoutedEventArgs e)
         {
             CreateNewProject();
@@ -148,6 +157,33 @@ namespace Tuch
                 // main.c를 에디터에 로드
                 ShowEditorView();
                 LoadFileContent(mainFilePath);
+
+                // Add to recent projects
+                HomeScreenView.AddRecentProject(Path.GetFileName(projectPath), projectPath);
+            }
+        }
+
+        private void OpenProject(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                projectPath = path;
+                PopulateFileViewer();
+                ShowEditorView();
+
+                // Try to load main.c if it exists
+                string mainFilePath = Path.Combine(projectPath, "main.c");
+                if (File.Exists(mainFilePath))
+                {
+                    LoadFileContent(mainFilePath);
+                }
+
+                // Add to recent projects
+                HomeScreenView.AddRecentProject(Path.GetFileName(projectPath), projectPath);
+            }
+            else
+            {
+                MessageBox.Show("The selected project folder does not exist.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -171,9 +207,7 @@ namespace Tuch
 
             if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
             {
-                projectPath = dialog.SelectedPath;
-                PopulateFileViewer();
-                ShowEditorView();
+                OpenProject(dialog.SelectedPath);
             }
         }
 
@@ -270,7 +304,7 @@ namespace Tuch
                 string output = runProcess.StandardOutput.ReadToEnd();
                 string errors = runProcess.StandardError.ReadToEnd();
 
-                ConsoleOutput.Text =output;
+                ConsoleOutput.Text = output;
                 if (!string.IsNullOrEmpty(errors))
                 {
                     ConsoleOutput.Text += "\nErrors:\n" + errors;

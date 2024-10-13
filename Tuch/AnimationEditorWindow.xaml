@@ -39,7 +39,7 @@
 
             <!-- Text Editor -->
             <TextBox x:Name="FrameTextEditor" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap"
-                     Margin="5" Padding="5"/>
+                     Margin="5" Padding="5" FontSize="50"/>
 
             <!-- Frame Properties -->
             <StackPanel Grid.Column="1" Margin="10">
@@ -55,10 +55,11 @@
 
         <!-- Controls -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
-            <Button Content="Add Frame" Click="AddFrame_Click" Margin="5"/>
-            <Button Content="Delete Frame" Click="DeleteFrame_Click" Margin="5"/>
-            <Button Content="Play Animation" Click="PlayAnimation_Click" Margin="5"/>
-            <Button Content="Stop Animation" Click="StopAnimation_Click" Margin="5"/>
+            <Button Content="Add Frame" Click="AddFrame_Click" Margin="5" Width="150"/>
+            <Button Content="Delete Frame" Click="DeleteFrame_Click" Margin="5" Width="150"/>
+            <Button Content="Play Animation" Click="PlayAnimation_Click" Margin="5" Width="150"/>
+            <Button Content="Stop Animation" Click="StopAnimation_Click" Margin="5" Width="150"/>
+            <Button Content="Save Animation" Click="SaveAnimation_Click" Margin="5" Width="150"/>
         </StackPanel>
 
         <!-- Timeline -->

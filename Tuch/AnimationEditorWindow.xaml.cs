@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Microsoft.Win32;
+
 
 namespace Tuch
 {
@@ -22,7 +25,7 @@ namespace Tuch
         {
             public string Text { get; set; }
             public int Duration { get; set; }
-            public double PixelWidth => Duration * 20; // 프레임당 20픽셀
+            public double PixelWidth => Duration * 50; // 프레임당 50픽셀
         }
 
         private ObservableCollection<AnimationFrame> frames;
@@ -106,6 +109,57 @@ namespace Tuch
         {
             animationTimer.Stop();
             PreviewText.Text = "";
+        }
+
+        private void SaveAnimation_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Animation files (*.anim)|*.anim",
+                DefaultExt = "anim"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                SaveAnimationToFile(saveFileDialog.FileName);
+            }
+        }
+
+        private void SaveAnimationToFile(string filePath)
+        {
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                List<AnimationFrame> currentFrames = new List<AnimationFrame>();
+
+                foreach (var frame in frames)
+                {
+                    if (currentFrames.Count > 0 && currentFrames[0].Text != frame.Text)
+                    {
+                        WriteFramesToFile(writer, currentFrames);
+                        currentFrames.Clear();
+                    }
+                    currentFrames.Add(frame);
+                }
+
+                if (currentFrames.Count > 0)
+                {
+                    WriteFramesToFile(writer, currentFrames);
+                }
+            }
+
+            MessageBox.Show("Animation saved successfully!", "Save Animation", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void WriteFramesToFile(StreamWriter writer, List<AnimationFrame> frames)
+        {
+            if (frames.Count == 1)
+            {
+                writer.WriteLine($"$for {frames[0].Duration} {frames[0].Text}");
+            }
+            else
+            {
+                writer.WriteLine($"$frames {string.Join(" ", frames.Select(f => f.Text))}");
+            }
         }
 
         private void UpdateEditorWithCurrentFrame()
