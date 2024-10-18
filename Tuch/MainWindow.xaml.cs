@@ -268,51 +268,95 @@ namespace Tuch
             // Save current content to the file
             File.WriteAllText(currentFilePath, CodeEditor.Text);
 
-            // Compile and run the C program
-            string outputExe = Path.ChangeExtension(currentFilePath, ".exe");
+            // Create a temporary directory for compilation output
+            string tempPath = Path.Combine(Path.GetTempPath(), "TuchCompiler");
+            if (!Directory.Exists(tempPath))
+            {
+                Directory.CreateDirectory(tempPath);
+            }
 
-            // Compile
+            // Use temporary directory for output executable
+            string outputExe = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(currentFilePath) + ".exe");
+
+            // Delete existing exe if it exists
+            try
+            {
+                if (File.Exists(outputExe))
+                {
+                    File.Delete(outputExe);
+                }
+            }
+            catch
+            {
+                // Ignore deletion errors
+            }
+
+            // Compile with elevated permissions
             ProcessStartInfo compileInfo = new ProcessStartInfo();
-            compileInfo.FileName = "gcc"; // Make sure GCC is in your PATH
+            compileInfo.FileName = "gcc";
             compileInfo.Arguments = $"-o \"{outputExe}\" \"{currentFilePath}\"";
             compileInfo.UseShellExecute = false;
             compileInfo.RedirectStandardError = true;
             compileInfo.CreateNoWindow = true;
+            compileInfo.Verb = "runas"; // Request elevated permissions
 
-            using (Process compileProcess = Process.Start(compileInfo))
+            try
             {
-                string errors = compileProcess.StandardError.ReadToEnd();
-                compileProcess.WaitForExit();
-
-                if (compileProcess.ExitCode != 0)
+                using (Process compileProcess = Process.Start(compileInfo))
                 {
-                    ConsoleOutput.Text = "Compilation Error:\n" + errors;
-                    return;
+                    string errors = compileProcess.StandardError.ReadToEnd();
+                    compileProcess.WaitForExit();
+
+                    if (compileProcess.ExitCode != 0)
+                    {
+                        ConsoleOutput.Text = "Compilation Error:\n" + errors;
+                        return;
+                    }
                 }
+
+                // Run the compiled program in a new CMD window
+                ProcessStartInfo runInfo = new ProcessStartInfo();
+                runInfo.FileName = "cmd.exe";
+                runInfo.Arguments = $"/K \"{outputExe}\"";
+                runInfo.UseShellExecute = true;
+                runInfo.CreateNoWindow = false;
+                runInfo.WorkingDirectory = Path.GetDirectoryName(currentFilePath); // Use source file directory as working directory
+                runInfo.Verb = "runas"; // Request elevated permissions
+
+                Process.Start(runInfo);
             }
-
-            // Run
-            ProcessStartInfo runInfo = new ProcessStartInfo();
-            runInfo.FileName = outputExe;
-            runInfo.UseShellExecute = false;
-            runInfo.RedirectStandardOutput = true;
-            runInfo.RedirectStandardError = true;
-            runInfo.CreateNoWindow = true;
-
-            using (Process runProcess = Process.Start(runInfo))
+            catch (Exception ex)
             {
-                string output = runProcess.StandardOutput.ReadToEnd();
-                string errors = runProcess.StandardError.ReadToEnd();
-
-                ConsoleOutput.Text = output;
-                if (!string.IsNullOrEmpty(errors))
-                {
-                    ConsoleOutput.Text += "\nErrors:\n" + errors;
-                }
+                ConsoleOutput.Text = $"Error: {ex.Message}";
             }
+            finally
+            {
+                // Clean up the exe file after a short delay
+                Task.Delay(500).ContinueWith(t =>
+                {
+                    try
+                    {
+                        if (File.Exists(outputExe))
+                        {
+                            File.Delete(outputExe);
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore deletion errors
+                    }
+                });
+            }
+        }
 
-            // Clean up the exe file
-            File.Delete(outputExe);
+        // Add this helper method to check if the process has elevated permissions
+        private bool IsElevated()
+        {
+            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+            {
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
         }
 
         private void NewFile_Click(object sender, RoutedEventArgs e)
