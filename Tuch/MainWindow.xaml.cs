@@ -265,18 +265,24 @@ namespace Tuch
                 return;
             }
 
-            // Save current content to the file
-            File.WriteAllText(currentFilePath, CodeEditor.Text);
+            // Get the project directory
+            string projectDirectory = Path.GetDirectoryName(currentFilePath);
 
-            // Create a temporary directory for compilation output
-            string tempPath = Path.Combine(Path.GetTempPath(), "TuchCompiler");
-            if (!Directory.Exists(tempPath))
+            // Process the code with SplitBuild
+            string processedCode = SplitBuild(CodeEditor.Text, projectDirectory);
+
+            // Create a temporary source file with the processed code
+            string tempSourcePath = Path.Combine(Path.GetTempPath(), "TuchCompiler");
+            if (!Directory.Exists(tempSourcePath))
             {
-                Directory.CreateDirectory(tempPath);
+                Directory.CreateDirectory(tempSourcePath);
             }
 
+            string tempSourceFile = Path.Combine(tempSourcePath, Path.GetFileName(currentFilePath));
+            File.WriteAllText(tempSourceFile, processedCode);
+
             // Use temporary directory for output executable
-            string outputExe = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(currentFilePath) + ".exe");
+            string outputExe = Path.Combine(tempSourcePath, Path.GetFileNameWithoutExtension(currentFilePath) + ".exe");
 
             // Delete existing exe if it exists
             try
@@ -294,7 +300,7 @@ namespace Tuch
             // Compile with elevated permissions
             ProcessStartInfo compileInfo = new ProcessStartInfo();
             compileInfo.FileName = "gcc";
-            compileInfo.Arguments = $"-o \"{outputExe}\" \"{currentFilePath}\"";
+            compileInfo.Arguments = $"-o \"{outputExe}\" \"{tempSourceFile}\"";
             compileInfo.UseShellExecute = false;
             compileInfo.RedirectStandardError = true;
             compileInfo.CreateNoWindow = true;
@@ -314,16 +320,15 @@ namespace Tuch
                     }
                 }
 
-                // Run the compiled program in a new CMD window
-                ProcessStartInfo runInfo = new ProcessStartInfo();
-                runInfo.FileName = "cmd.exe";
-                runInfo.Arguments = $"/K \"{outputExe}\"";
-                runInfo.UseShellExecute = true;
-                runInfo.CreateNoWindow = false;
-                runInfo.WorkingDirectory = Path.GetDirectoryName(currentFilePath); // Use source file directory as working directory
-                runInfo.Verb = "runas"; // Request elevated permissions
+                // Run the compiled program in a CMD window
+                ProcessStartInfo run = new ProcessStartInfo();
+                run.FileName = "cmd.exe";
+                run.Arguments = $"/K \"{outputExe}\"";
+                run.UseShellExecute = true;
+                run.CreateNoWindow = false;
+                run.WorkingDirectory = projectDirectory; // Use project directory as working directory
 
-                Process.Start(runInfo);
+                Process.Start(run);
             }
             catch (Exception ex)
             {
@@ -331,7 +336,7 @@ namespace Tuch
             }
             finally
             {
-                // Clean up the exe file after a short delay
+                // Clean up the temporary files after a short delay
                 Task.Delay(500).ContinueWith(t =>
                 {
                     try
@@ -340,6 +345,10 @@ namespace Tuch
                         {
                             File.Delete(outputExe);
                         }
+                        if (File.Exists(tempSourceFile))
+                        {
+                            File.Delete(tempSourceFile);
+                        }
                     }
                     catch
                     {
@@ -347,6 +356,60 @@ namespace Tuch
                     }
                 });
             }
+        }
+
+        private string SplitBuild(string sourceCode, string projectDirectory)
+        {
+            var lines = sourceCode.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var resultCode = new StringBuilder();
+
+            foreach (var line in lines)
+            {
+                if (line.Trim().StartsWith("///"))
+                {
+                    // Extract filename after ///
+                    string filename = line.Trim().Substring(3).Trim();
+
+                    // Check if the file has no extension, add .cppe
+                    if (!Path.HasExtension(filename))
+                    {
+                        filename += ".cppe";
+                    }
+
+                    // Construct full path
+                    string fullPath = Path.Combine(projectDirectory, filename);
+
+                    // Check if file exists
+                    if (File.Exists(fullPath))
+                    {
+                        try
+                        {
+                            // Read and append the content of the .cppe file
+                            string cppeContent = File.ReadAllText(fullPath);
+                            resultCode.AppendLine(cppeContent);
+                        }
+                        catch (Exception ex)
+                        {
+                            // If there's an error reading the file, keep the original line
+                            resultCode.AppendLine($"// Error including {filename}: {ex.Message}");
+                            resultCode.AppendLine(line);
+                        }
+                    }
+                    else
+                    {
+                        // If file doesn't exist, keep the original line and add comment
+                        resultCode.AppendLine($"// File not found: {filename}");
+                        resultCode.AppendLine(line);
+                    }
+                }
+                else
+                {
+                    // For normal lines, just append them
+                    resultCode.AppendLine(line);
+                }
+            }
+
+            return resultCode.ToString();
         }
 
         // Add this helper method to check if the process has elevated permissions
