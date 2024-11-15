@@ -299,7 +299,7 @@ namespace Tuch
 
             // Compile with elevated permissions
             ProcessStartInfo compileInfo = new ProcessStartInfo();
-            compileInfo.FileName = "gcc";
+            compileInfo.FileName = "g++";
             compileInfo.Arguments = $"-o \"{outputExe}\" \"{tempSourceFile}\"";
             compileInfo.UseShellExecute = false;
             compileInfo.RedirectStandardError = true;
