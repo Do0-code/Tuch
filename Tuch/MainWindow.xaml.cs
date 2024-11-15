@@ -281,8 +281,8 @@ namespace Tuch
             string tempSourceFile = Path.Combine(tempSourcePath, Path.GetFileName(currentFilePath));
             File.WriteAllText(tempSourceFile, processedCode);
 
-            // Use temporary directory for output executable
-            string outputExe = Path.Combine(tempSourcePath, Path.GetFileNameWithoutExtension(currentFilePath) + ".exe");
+            // Use the same directory as the source file for output executable
+            string outputExe = Path.Combine(projectDirectory, Path.GetFileNameWithoutExtension(currentFilePath) + ".exe");
 
             // Delete existing exe if it exists
             try
