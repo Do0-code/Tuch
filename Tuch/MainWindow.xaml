@@ -42,7 +42,12 @@
             <MenuItem Header="File" Foreground="#ABB2BF">
                 <MenuItem Header="New Project" Click="NewProject_Click" Foreground="#282C34"/>
                 <MenuItem Header="Open Project" Click="OpenProject_Click" Foreground="#282C34"/>
-                <MenuItem Header="Save" Click="SaveFile_Click" Foreground="#282C34"/>
+                <Separator/>
+                <!--MenuItem Header="New File" Click="NewFile_Click" Foreground="#282C34"/-->
+                <MenuItem Header="Open File" Click="OpenFile_Click" Foreground="#282C34"/>
+                <MenuItem Header="Save File" Click="SaveFile_Click" Foreground="#282C34"/>
+                <Separator/>
+                <MenuItem Header="Exit" Click="Exit_Click" Foreground="#282C34"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="Exit_Click" Foreground="#282C34"/>
             </MenuItem>

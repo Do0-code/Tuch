@@ -141,7 +141,11 @@ namespace Tuch
             if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
             {
                 projectPath = dialog.SelectedPath;
-                string mainFilePath = Path.Combine(projectPath, "main.c");
+                string mainFilePath = Path.Combine(projectPath, "main.cpp");
+                string silverFilepath = Path.Combine(projectPath, "silver.cpp");
+                string silverHeaderFilepath = Path.Combine(projectPath, "silver.hpp");
+                string silver = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Tuch", "Silver.txt");
+                string silverHeader = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Tuch", "SilverHeader.txt");
                 //디렉토리가 존재하지 않으면 생성
                 if (!Directory.Exists(projectPath))
                 {
@@ -150,7 +154,16 @@ namespace Tuch
                 //main.c 내용
                 if (!File.Exists(mainFilePath))
                 {
-                    File.WriteAllText(mainFilePath, "// Your C code here\n");
+                    File.WriteAllText(mainFilePath, "#include <iostream>\n#include \"silver.hpp\"\n");
+                }
+                if (!File.Exists(silverFilepath))
+                {
+                    File.WriteAllText(silverFilepath, File.ReadAllText(silver));
+
+                }
+                if (!File.Exists(silverHeaderFilepath))
+                {
+                    File.WriteAllText(silverHeaderFilepath, File.ReadAllText(silverHeader));
                 }
                 // 파일 뷰어 갱신
                 PopulateFileViewer();
@@ -173,6 +186,7 @@ namespace Tuch
 
                 // Try to load main.c if it exists
                 string mainFilePath = Path.Combine(projectPath, "main.c");
+            
                 if (File.Exists(mainFilePath))
                 {
                     LoadFileContent(mainFilePath);
@@ -337,7 +351,7 @@ namespace Tuch
             finally
             {
                 // Clean up the temporary files after a short delay
-                Task.Delay(500).ContinueWith(t =>
+                Task.Delay(100).ContinueWith(t =>
                 {
                     try
                     {
@@ -356,6 +370,9 @@ namespace Tuch
                     }
                 });
             }
+            SaveFile();
+            // 파일 뷰어 갱신
+            PopulateFileViewer();
         }
 
         private string SplitBuild(string sourceCode, string projectDirectory)
@@ -440,6 +457,24 @@ namespace Tuch
         }
 
         private void SaveFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentFilePath))
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "C files (*.c)|*.c|All files (*.*)|*.*";
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    currentFilePath = saveFileDialog.FileName;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            File.WriteAllText(currentFilePath, CodeEditor.Text);
+        }
+
+        private void SaveFile()
         {
             if (string.IsNullOrEmpty(currentFilePath))
             {
